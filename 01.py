@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import itertools
+from functools import reduce
 
 import aoc
 import more_itertools
@@ -77,6 +78,17 @@ def main() -> None:
         ]
     )
     print("Part 2 number of increments (more more_itertools based)>", increment_counter)
+
+    # Part 2 --- more more_itertools based with reduce
+    increment_counter = reduce(
+        lambda count, data: count + (sum(data[1]) > sum(data[0])),
+        itertools.pairwise(more_itertools.triplewise(numbers)),
+        0,
+    )
+    print(
+        "Part 2 number of increments (more more_itertools based with reduce)>",
+        increment_counter,
+    )
 
 
 if __name__ == "__main__":
