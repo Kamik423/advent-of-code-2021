@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-import itertools
 from functools import reduce
+from itertools import pairwise
 
 import aoc
-import more_itertools
+from more_itertools import triplewise
 
 
 class Window:
@@ -36,7 +36,7 @@ class Window:
 def main() -> None:
     numbers = aoc.get_integers()
 
-    # Part 1
+    # Part 1 --- loop based
     current_number = None
     increment_counter = 0
     for number in numbers:
@@ -44,7 +44,11 @@ def main() -> None:
             if number > current_number:
                 increment_counter += 1
         current_number = number
-    print("Part one, number of increments>", increment_counter)
+    print("Part one (loop based)>", increment_counter)
+
+    # Part 1 ---
+    increment_counter = sum(before < after for before, after in pairwise(numbers))
+    print("Part one (itertools based)>", increment_counter)
 
     # Part 2 --- custom sliding window class based
     window = Window(3)
@@ -57,36 +61,33 @@ def main() -> None:
         if window.is_full() and current_number is not None:
             if window.get_sum() > current_number:
                 increment_counter += 1
-    print("Part 2 number of increments (class based)>", increment_counter)
+    print("Part 2 (class based)>", increment_counter)
 
     # Part 2 --- more_itertools based
     current_number = None
     increment_counter = 0
-    for window in more_itertools.triplewise(numbers):
+    for window in triplewise(numbers):
         new_sum = sum(window)
         if current_number is not None:
             if new_sum > current_number:
                 increment_counter += 1
         current_number = new_sum
-    print("Part 2 number of increments (more_itertools based)>", increment_counter)
+    print("Part 2 (more_itertools based)>", increment_counter)
 
     # Part 2 --- more more_itertools based
     increment_counter = sum(
-        [
-            sum(after) > sum(before)
-            for before, after in itertools.pairwise(more_itertools.triplewise(numbers))
-        ]
+        [sum(after) > sum(before) for before, after in pairwise(triplewise(numbers))]
     )
-    print("Part 2 number of increments (more more_itertools based)>", increment_counter)
+    print("Part 2 (more more_itertools based)>", increment_counter)
 
     # Part 2 --- more more_itertools based with reduce
     increment_counter = reduce(
         lambda count, data: count + (sum(data[1]) > sum(data[0])),
-        itertools.pairwise(more_itertools.triplewise(numbers)),
+        pairwise(triplewise(numbers)),
         0,
     )
     print(
-        "Part 2 number of increments (more more_itertools based with reduce)>",
+        "Part 2 (more more_itertools based with reduce)>",
         increment_counter,
     )
 
