@@ -76,13 +76,24 @@ def main() -> None:
 
     # Part 2 --- more more_itertools based
     increment_counter = sum(
-        [sum(after) > sum(before) for before, after in pairwise(triplewise(numbers))]
+        [sum(before) < sum(after) for before, after in pairwise(triplewise(numbers))]
     )
     print("Part 2 (more more_itertools based)>", increment_counter)
 
+    # Part 2 --- more more_itertools based, presummed
+    increment_counter = sum(
+        [
+            before < after
+            for before, after in pairwise(
+                (sum(triple) for triple in triplewise(numbers))
+            )
+        ]
+    )
+    print("Part 2 (more more_itertools based, presummed)>", increment_counter)
+
     # Part 2 --- more more_itertools based with reduce
     increment_counter = reduce(
-        lambda count, data: count + (sum(data[1]) > sum(data[0])),
+        lambda count, data: count + (sum(data[0]) < sum(data[1])),
         pairwise(triplewise(numbers)),
         0,
     )
