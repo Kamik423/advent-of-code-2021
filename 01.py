@@ -46,7 +46,7 @@ def main() -> None:
         current_number = number
     print("Part one (loop based)>", increment_counter)
 
-    # Part 1 ---
+    # Part 1 --- itertools based
     increment_counter = sum(before < after for before, after in pairwise(numbers))
     print("Part one (itertools based)>", increment_counter)
 
