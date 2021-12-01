@@ -44,11 +44,11 @@ def main() -> None:
             if number > current_number:
                 increment_counter += 1
         current_number = number
-    print("Part one (loop based)>", increment_counter)
+    print("Part 1 (loop based)>", increment_counter)
 
     # Part 1 --- itertools based
     increment_counter = sum(before < after for before, after in pairwise(numbers))
-    print("Part one (itertools based)>", increment_counter)
+    print("Part 1 (itertools based)>", increment_counter)
 
     # Part 2 --- custom sliding window class based
     window = Window(3)
@@ -79,6 +79,13 @@ def main() -> None:
         [sum(before) < sum(after) for before, after in pairwise(triplewise(numbers))]
     )
     print("Part 2 (more more_itertools based)>", increment_counter)
+
+    # Part 2 --- evil math
+    # a+b+c<b+c+d = a<d
+    increment_counter = sum(
+        [before[0] < after[2] for before, after in pairwise(triplewise(numbers))]
+    )
+    print("Part 2 (more more_itertools based, evil math)>", increment_counter)
 
     # Part 2 --- more more_itertools based, presummed
     increment_counter = sum(
