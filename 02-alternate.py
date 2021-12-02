@@ -34,12 +34,12 @@ def main() -> None:
                 [[0, 1, 0, 0], [0, 0, 1, 0]],  # output matrix
                 *[
                     [
-                        [1, 0, 0, d if cmd == "d" else -d if cmd == "u" else 0],
-                        [0, 1, 0, d if cmd == "f" else 0],
-                        [d if cmd == "f" else 0, 0, 1, 0],
+                        [1, 0, 0, dist if cmd == "d" else -dist if cmd == "u" else 0],
+                        [0, 1, 0, dist if cmd == "f" else 0],
+                        [dist if cmd == "f" else 0, 0, 1, 0],
                         [0, 0, 0, 1],
                     ]  # homogeneous state transition matrix
-                    for cmd, d in reversed(commands)
+                    for cmd, dist in reversed(commands)
                 ],
                 [0, 0, 0, 1],  # initial state
             ],
