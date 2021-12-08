@@ -64,8 +64,8 @@ def main() -> None:
         # real segment name : what could still be it
         candidates = {key: list("abcdefg") for key in "abcdefg"}
 
-        # number : digits that might be in it
-        symbols = ["abcdefg" for _ in range(10)]
+        # number : found code
+        symbols = {key: None for key in range(10)}
 
         def might_be(number: int, candidate: str) -> bool:
             """Might this number still be this string candidate.
@@ -104,16 +104,14 @@ def main() -> None:
 
         def unfound(number: int) -> bool:
             """Has this number not yet been found."""
-            if number == 8:
-                return False
-            return len(symbols[number]) == 7
+            return symbols[number] is None
 
         def certain_candidate(code: str) -> int | None:
             """Is this the only certain candidate. Otherwise None."""
             code = "".join(sorted(code))
-            matching_symbols = [n for n, symbol in enumerate(symbols) if symbol == code]
-            if len(matching_symbols) == 1:
-                return matching_symbols[0]
+            for number, known_code in symbols.items():
+                if known_code == code:
+                    return number
             return None
 
         # repeatedly see if this number is the only one that could match a word.
