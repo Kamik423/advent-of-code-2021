@@ -19,7 +19,7 @@ def code_length(number: int) -> int:
     return [6, 2, 5, 5, 4, 5, 6, 3, 7, 6][number]
 
 
-def required_letters(number: int) -> str:
+def required_segments(number: int) -> str:
     """The segments required for a certain number."""
     return [
         "abcefg",
@@ -42,11 +42,8 @@ def opposite_code(code: str) -> str:
 
 def main() -> None:
     lines = aoc.get_lines()
-    # lines = [
-    #     "acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab | cdfeb fcadb cdfeb cdbaf"
-    # ]
 
-    # part 1
+    # Part 1
     print(
         sum(
             sum(len(word) in [2, 3, 4, 7] for word in line.split(" | ")[1].split(" "))
@@ -54,7 +51,32 @@ def main() -> None:
         )
     )
 
-    # part 2
+    # Part 2
+    # ======
+    #
+    # This functions this way: We keep the dictionary `candidates` which maps
+    # real world digits to all the numbers that could still be it.
+    #
+    #     candidates["a"] = "abeg"
+    #
+    # means that those digits can still map to real world a. We then check that
+    # a number might match a code (`might_be`). This matches three things:
+    #  * The code has the right length for the number
+    #  * All segments that have to be turned on for this number have candidates
+    #        that are in the code.
+    #  * All segments that have to be turned off for this number have candidates
+    #        that are not included in the code.
+    # While this could map all the segments to the same two candidates this does
+    # not matter since no possibility will ever be invalidated due to this. It
+    # will only yield false-positive matches never false-negatives. A number
+    # will never be falsly classified as not matching a code.
+    #
+    # This function is then used to check if it is the only number that might
+    # match a code. This is quite trivial for the numbers 1, 4, 7 and 8 as they
+    # are the only one of their length. Due to a shrinking list of candidates
+    # due to the growing list of known mappings all numbers will over time be
+    # found out.
+
     big_sum = 0
     for line in lines:
         words = list(
@@ -68,25 +90,20 @@ def main() -> None:
         symbols = {key: None for key in range(10)}
 
         def might_be(number: int, candidate: str) -> bool:
-            """Might this number still be this string candidate.
-
-            This checks if all of the segments in the candidate still lie on the
-            number and the ones not included can all lie off the number.
-
-            This however might match all candidate segments to the same real
-            one. This is not a problem however as no number will be eliminated
-            just on this.
-            """
+            """Might this number still be this string candidate."""
+            # Right length
             if not code_length(number) == len(candidate):
                 return False
             missing = opposite_code(candidate)
-            for required_letter in required_letters(number):
-                if not any(c in candidate for c in candidates[required_letter]):
+            # Required (real world) segments for this number all have candidates
+            # included in the code
+            for required_segment in required_segments(number):
+                if not any(c in candidate for c in candidates[required_segment]):
                     return False
-            for no_letter in opposite_code(required_letters(number)):
-                if not any(
-                    c in opposite_code(candidate) for c in candidates[no_letter]
-                ):
+            # All segments that have to be off have candidates that are not
+            # included in the code
+            for noseg in opposite_code(required_segments(number)):
+                if not any(c in opposite_code(candidate) for c in candidates[noseg]):
                     return False
             return True
 
@@ -98,13 +115,9 @@ def main() -> None:
         def register(number: int, code: str) -> None:
             """Register a code to a number and update relations knowledge."""
             symbols[number] = code
-            for key in opposite_code(required_letters(number)):
+            for key in opposite_code(required_segments(number)):
                 candidates[key] = [c for c in candidates[key] if c not in code]
             # print(f"{number} <== {code}")
-
-        def unfound(number: int) -> bool:
-            """Has this number not yet been found."""
-            return symbols[number] is None
 
         def certain_candidate(code: str) -> int | None:
             """Is this the only certain candidate. Otherwise None."""
@@ -119,7 +132,7 @@ def main() -> None:
         for _ in range(10):
             for number in range(10):
                 # only try to match as of yet undetermined numbers
-                if unfound(number):
+                if symbols[number] is None:
                     for word in words:
                         # If this is the only number that could still be be this
                         # code then register it. Remove the word from the list
