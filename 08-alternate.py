@@ -129,6 +129,7 @@ class Matrix:
 
     def normalize(self) -> None:
         """Normalize the matrix according to the secret sauce"""
+        # without the sorting by count this does not work.
         self.sort_rows_by_count()
         self.sort_columns_by_count()
         for _ in range(4):
