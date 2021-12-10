@@ -63,7 +63,7 @@ def main() -> None:
                 basin_map[y][x] = above
             else:
                 # merge blobs by replacing left basin by above
-                for x2, y2 in product(range(len(matrix)), range(len(matrix[0]))):
+                for y2, x2 in product(range(len(matrix)), range(len(matrix[0]))):
                     if basin_map[y2][x2] == left:
                         basin_map[y2][x2] = above
                 basin_map[y][x] = above
