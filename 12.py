@@ -1,20 +1,12 @@
 #!/usr/bin/env python3
 
+from collections import deque
+
 import aoc
 
 
 def main() -> None:
     lines = aoc.get_lines()
-
-    # lines = [
-    #     "start-A",
-    #     "start-b",
-    #     "A-c",
-    #     "A-b",
-    #     "b-d",
-    #     "A-end",
-    #     "b-end",
-    # ]
 
     cave_map: dict[str, list[str]] = {}
     big_caves: list[str] = []
@@ -34,9 +26,10 @@ def main() -> None:
 
     # part 1
     finished_routes: list[list[str]] = []
-    routes = [["start"]]
+    routes = deque()
+    routes.append(["start"])
     while routes:
-        route = routes.pop(0)
+        route = routes.popleft()
         for node in cave_map[route[-1]]:
             if node == "end":
                 finished_routes.append([*route, node])
@@ -51,9 +44,9 @@ def main() -> None:
     # routes are now prepended with a bool indicating whether double cave has
     # been used
     finished_routes: list[list[str]] = []
-    routes = [[False, "start"]]
+    routes.append([False, "start"])
     while routes:
-        route = routes.pop(0)
+        route = routes.popleft()
         for node in cave_map[route[-1]]:
             if node == "end":
                 finished_routes.append([*route, node])
@@ -66,10 +59,6 @@ def main() -> None:
                         routes.append([True, *route[1:], node])
             elif node in big_caves:
                 routes.append([*route, node])
-
-    # for route in finished_routes:
-    #     print(",".join(route))
-
     print(len(finished_routes))
 
 
