@@ -6,7 +6,7 @@ import pytesseract
 from PIL import Image
 
 
-def main() -> None:
+def main(timer: aoc.Timer) -> None:
     data = aoc.get_str().strip()
 
     point_data, instructions = [lines.split("\n") for lines in data.split("\n\n")]
@@ -40,8 +40,12 @@ def main() -> None:
             ][: distance + 1]
         print(sum(sum(line) for line in paper))
 
+    timer.mark()
+
     for line in paper:
         print("".join("█" if c else " " for c in line))
+
+    timer.mark()
 
     # convert to image
     image = Image.fromarray(
@@ -58,4 +62,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    with aoc.Timer() as timer:
+        main(timer)

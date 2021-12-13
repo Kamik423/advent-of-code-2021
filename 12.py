@@ -5,7 +5,7 @@ from collections import deque
 import aoc
 
 
-def main() -> None:
+def main(timer: aoc.Timer) -> None:
     lines = aoc.get_lines()
 
     cave_map: dict[str, list[str]] = {}
@@ -40,6 +40,8 @@ def main() -> None:
                 routes.append([*route, node])
     print(len(finished_routes))
 
+    timer.mark()
+
     # part 2
     # routes are now prepended with a bool indicating whether double cave has
     # been used
@@ -63,4 +65,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    with aoc.Timer() as timer:
+        main(timer)

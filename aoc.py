@@ -29,6 +29,8 @@ example `day_03.py` or `03-alternate.py` would query day 3; however files like
 what you want. You can rewrite that method, rename your files, or specify the
 day manually.
 
+This module also provides timer functionality.
+
 Attributes:
     CACHE_DIRECTORY (TYPE): The directory to put the daily inputs in.
     CACHE_FILE_NAME_TEMPLATE (str): The name template for daily cache files.
@@ -36,7 +38,11 @@ Attributes:
     PROJECT_FOLDER (TYPE): The computed directory the main file is in.
     URL (str): A format url for a given day.
 """
+from __future__ import annotations
+
+import itertools
 import sys
+import time
 from pathlib import Path
 from typing import List
 
@@ -150,3 +156,83 @@ def get_integers(day: int | None = None) -> List[int]:
     """
     day = day or guess_day_from_filename()
     return [int(line) for line in get_lines(day)]
+
+
+class Timer:
+    """Used to time days.
+
+    Usage like:
+
+        with aoc.Timer() as timer:
+            part1()
+            timer.mark()
+            part2()
+
+    It will automatically print a timed table. The initializer can get a custom
+    day name if you feel like it. If you don't call mark it will be timed as one
+    piece. I prefer to use it as
+
+        import aoc
+
+        def main(timer: aoc.Timer) -> None:
+            # part 1 code
+            timer.mark()
+            # part 2 code
+
+
+        if __name__ == "__main__":
+            with aoc.Timer() as timer:
+                main(timer)
+
+    Mark can be used with a title too: mark("Fetching") to label the previous
+    section. The ones which you do not provide a title for will be labeled
+    "Part 1", "Part 2" and "Postprocessing" in order. The ones after will not
+    receive a label.
+    """
+
+    times: list[float]
+    sections: list[str]
+    remaining_labels: list[str]
+
+    day: str = ""
+
+    def __init__(self, day: any | None = None):
+        self.day = str(day) if day is not None else str(guess_day_from_filename())
+        self.remaining_labels = ["Part 1", "Part 2", "Postprocessing"]
+        self.times = []
+        self.sections = []
+
+    def next_label(self) -> str:
+        return self.remaining_labels.pop(0) if self.remaining_labels else ""
+
+    def __enter__(self) -> Timer:
+        self.times = [time.time()]
+        return self
+
+    def mark(self, name: str = None) -> None:
+        self.times.append(time.time())
+        self.sections.append(name or self.next_label())
+
+    def __exit__(self, type, value, traceback) -> None:
+        self.times.append(time.time())
+        self.sections.append(self.next_label())
+
+        label_length = max(len(label) for label in self.sections)
+
+        def separator(character: str) -> str:
+            return (
+                (character * label_length)
+                + "  "
+                + (character * (len(f"{self.times[-1] - self.times[0]:.03f}") + 2))
+            )
+
+        print(separator("="))
+        print(f"{'Day'.ljust(label_length)}  {self.day}")
+        print(separator("-"))
+        for (time_a, time_b), label in zip(
+            itertools.pairwise(self.times), self.sections
+        ):
+            print(f"{label.ljust(label_length)}  {time_b - time_a:.03f} s")
+        print(f"{'Total'.ljust(label_length)}  {self.times[-1] - self.times[0]:.03f} s")
+
+        print(separator("="))
