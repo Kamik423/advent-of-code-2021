@@ -58,7 +58,6 @@ def main(timer: aoc.Timer) -> None:
     image = image2.resize((4 * image2.width, 4 * image2.height))
     # OCR
     print(pytesseract.image_to_string(image).strip())
-    print("In my case the OCR does not yield the correct result")
 
 
 if __name__ == "__main__":
