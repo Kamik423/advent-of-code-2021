@@ -40,9 +40,9 @@ Attributes:
 """
 from __future__ import annotations
 
-import itertools
 import sys
 import time
+from itertools import pairwise
 from pathlib import Path
 from typing import List
 
@@ -203,6 +203,12 @@ class Timer:
         self.sections = []
 
     def next_label(self) -> str:
+        """Get the next automatically computed label
+
+        Returns:
+            str: The next free one of ["Part 1", "Part 2", "Postprocessing"].
+                Otherwise just ""
+        """
         return self.remaining_labels.pop(0) if self.remaining_labels else ""
 
     def __enter__(self) -> Timer:
@@ -210,6 +216,11 @@ class Timer:
         return self
 
     def mark(self, name: str = None) -> None:
+        """Mark the end current part or section.
+
+        Args:
+            name (str, optional): The name of the section. Autolabeled usually.
+        """
         self.times.append(time.time())
         self.sections.append(name or self.next_label())
 
@@ -229,10 +240,10 @@ class Timer:
         print(separator("="))
         print(f"{'Day'.ljust(label_length)}  {self.day}")
         print(separator("-"))
-        for (time_a, time_b), label in zip(
-            itertools.pairwise(self.times), self.sections
-        ):
-            print(f"{label.ljust(label_length)}  {time_b - time_a:.03f} s")
+        if len(self.times) > 2:
+            for (time_a, time_b), label in zip(pairwise(self.times), self.sections):
+                print(f"{label.ljust(label_length)}  {time_b - time_a:.03f} s")
+            print(separator("-"))
         print(f"{'Total'.ljust(label_length)}  {self.times[-1] - self.times[0]:.03f} s")
 
         print(separator("="))
