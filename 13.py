@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
 import aoc
+import numpy as np
+import pytesseract
+from PIL import Image
 
 
 def main() -> None:
@@ -39,6 +42,19 @@ def main() -> None:
 
     for line in paper:
         print("".join("█" if c else " " for c in line))
+
+    # convert to image
+    image = Image.fromarray(
+        np.array([np.array([255 * (not c) for c in l], dtype=np.uint8) for l in paper])
+    )
+    # padding
+    image2 = Image.new(image.mode, (len(paper[0]) + 4, len(paper) + 4), 255)
+    image2.paste(image, (2, 2))
+    # upscale
+    image = image2.resize((4 * image2.width, 4 * image2.height))
+    # OCR
+    print(pytesseract.image_to_string(image).strip())
+    print("In my case the OCR does not yield the correct result")
 
 
 if __name__ == "__main__":
