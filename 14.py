@@ -7,11 +7,6 @@ import aoc
 import numpy as np
 
 
-def elementwise_sum(*lists: list[list[int]]) -> list[int]:
-    """An element wise sum of two lists."""
-    return list(map(sum, zip(*lists)))
-
-
 def deconstruct(polymer: str) -> list[str]:
     """ABCDEF -> AB BC CD DE EF."""
     return [a + b for a, b in itertools.pairwise(polymer)]
