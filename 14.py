@@ -25,7 +25,7 @@ def main(timer: aoc.Timer) -> None:
 
     @cache
     def expand_pair_counts(sequence: str, depth: int) -> list[int]:
-        """AC -> [1, 3, 3, 7]; frequencies for each letter according to the
+        """AC -> [1, 0, 3, 7]; frequencies for each letter according to the
         order in `letters`. The first character will not be counted to prevent
         overlap.
         """
