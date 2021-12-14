@@ -193,6 +193,7 @@ class Timer:
     times: list[float]
     sections: list[str]
     remaining_labels: list[str]
+    finished: bool = False
 
     day: str = ""
 
@@ -201,6 +202,7 @@ class Timer:
         self.remaining_labels = ["Part 1", "Part 2", "Postprocessing"]
         self.times = []
         self.sections = []
+        self.finished = False
 
     def next_label(self) -> str:
         """Get the next automatically computed label
@@ -224,9 +226,19 @@ class Timer:
         self.times.append(time.time())
         self.sections.append(name or self.next_label())
 
+    def last_mark(self, name: str = None) -> None:
+        """Mark the end current part or section. Don't start a sequence after.
+
+        Args:
+            name (str, optional): The name of the section. Autolabeled usually.
+        """
+        self.mark(name)
+        self.finished = True
+
     def __exit__(self, type, value, traceback) -> None:
-        self.times.append(time.time())
-        self.sections.append(self.next_label())
+        if not self.finished:
+            self.times.append(time.time())
+            self.sections.append(self.next_label())
 
         label_length = max(len(label) for label in self.sections)
 
