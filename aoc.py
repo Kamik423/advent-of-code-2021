@@ -240,22 +240,37 @@ class Timer:
             self.times.append(time.time())
             self.sections.append(self.next_label())
 
-        label_length = max(len(label) for label in self.sections)
+        self.times = [1000 * t for t in self.times]
 
-        def separator(character: str) -> str:
+        label_length = max(len(label) for label in self.sections)
+        last_col_length = len(f"{self.times[-1] - self.times[0]:.03f}") + 3
+
+        def separator(character: str, continuous: bool = True) -> str:
             return (
                 (character * label_length)
-                + "  "
-                + (character * (len(f"{self.times[-1] - self.times[0]:.03f}") + 2))
+                + (character if continuous else " ") * 4
+                + (character * last_col_length)
             )
 
-        print(separator("="))
-        print(f"{'Day'.ljust(label_length)}  {self.day}")
-        print(separator("-"))
+        toprule = separator("━")
+        midrule = separator("─")
+        bottomrule = toprule
+
+        print(toprule)
+        print(f"{'Day'.ljust(label_length)}    {self.day.rjust(last_col_length)}")
+        print(midrule)
         if len(self.times) > 2:
             for (time_a, time_b), label in zip(pairwise(self.times), self.sections):
-                print(f"{label.ljust(label_length)}  {time_b - time_a:.03f} s")
-            print(separator("-"))
-        print(f"{'Total'.ljust(label_length)}  {self.times[-1] - self.times[0]:.03f} s")
+                print(
+                    label.ljust(label_length)
+                    + "    "
+                    + f"{time_b - time_a:.03f} ms".rjust(last_col_length)
+                )
+            print(midrule)
+        print(
+            "Total".ljust(label_length)
+            + "    "
+            + f"{self.times[-1] - self.times[0]:.03f} ms".rjust(last_col_length)
+        )
 
-        print(separator("="))
+        print(bottomrule)
