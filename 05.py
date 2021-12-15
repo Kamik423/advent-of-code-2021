@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-import re
-
 import aoc
 
 POINT = tuple[int, int]
@@ -16,16 +14,17 @@ def omni_range(start: int, end: int) -> list[int]:
 
 
 def main() -> None:
-    lines = aoc.get_lines()
+    lines = (
+        aoc.Parse()
+        .regex_lines(r"(\d+),(\d+) -> (\d+),(\d+)", (int, int, int, int))
+        .get()
+    )
 
     horizontal_lines: list[tuple[POINT, POINT]] = []
     vertical_lines: list[tuple[POINT, POINT]] = []
     diagonal_lines: list[tuple[POINT, POINT]] = []
 
-    for line in lines:
-        x1, y1, x2, y2 = [
-            int(c) for c in re.match(r"^(\d+),(\d+) -> (\d+),(\d+)$", line).groups()
-        ]
+    for x1, y1, x2, y2 in lines:
         point1, point2 = (x1, y1), (x2, y2)
         points = (point1, point2)
         if y1 == y2:

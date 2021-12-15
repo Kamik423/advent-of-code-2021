@@ -7,8 +7,7 @@ import numpy as np
 
 
 def main() -> None:
-    lines = aoc.get_lines()
-    commands = [[line[0], int(line.split(" ")[1])] for line in lines]
+    commands = aoc.Parse().regex_lines(r"(.).+ (\d+)", (str, int)).get()
     # model using homogeneous state transition matrices
     print(
         reduce(

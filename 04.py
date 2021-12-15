@@ -22,13 +22,12 @@ def board_complete(board: BOARD) -> bool:
 
 
 def main() -> None:
-    lines = aoc.get_lines()
-    instructions = [int(number) for number in lines[0].split(",")]
+    instructions, lines = aoc.Parse().comma_integers().remaining_lines()
 
     # read boards
     boards: list[BOARD] = []
     current_board: BOARD = []
-    for line in [*lines[2:], ""]:
+    for line in [*lines, ""]:
         if line:
             current_board.append([int(number) for number in line.split(" ") if number])
         else:

@@ -19,6 +19,8 @@ of the following lines:
     aoc.get_str(1) # string data for day one
     aoc.get_lines(1) # input lines for day one
     aoc.get_integers(1) # integers for day one (one per line)
+    aoc.get_comma_integers(1) # get one line of integers separated by commas
+    aoc.get_dense_int_matrix(1) # get a 2d matrix of ints with one per character
 
     aoc.get_integers() # when called from `01-minimal.py` gets ints for day 1.
 
@@ -29,7 +31,23 @@ example `day_03.py` or `03-alternate.py` would query day 3; however files like
 what you want. You can rewrite that method, rename your files, or specify the
 day manually.
 
-This module also provides timer functionality.
+Complex queries are possible, read the documentation for Parse below.
+
+    foo, bar = aoc.Parse().comma_integers().regex(r"(\d+) => (.+)", (int, str))
+
+would parse a file that looks like
+
+    1,2,3,4,5,6
+
+    1 => a
+    2 => b
+    3 => c
+
+and write a list of integers into foo, and a list of tuples, here [(1, "a"),
+(2, "b"), ...] into bar.
+
+This module also provides timer functionality. Read the documentation for Timer
+below.
 
 Attributes:
     CACHE_DIRECTORY (TYPE): The directory to put the daily inputs in.
@@ -38,12 +56,15 @@ Attributes:
     PROJECT_FOLDER (TYPE): The computed directory the main file is in.
     URL (str): A format url for a given day.
 """
+
 from __future__ import annotations
 
+import re
 import sys
 import time
 from itertools import pairwise
 from pathlib import Path
+from typing import Callable, Iterator
 
 import requests
 
@@ -52,6 +73,9 @@ COOKIE_PATH = PROJECT_FOLDER / "COOKIE.txt"
 URL = "https://adventofcode.com/2021/day/{}/input"
 CACHE_FILE_NAME_TEMPLATE = "{:02d}.txt"
 CACHE_DIRECTORY = PROJECT_FOLDER / "input"
+
+# ==============================================================================
+# General functions to interface with AOC and fetch files
 
 
 def cache_file_for_day(day: int) -> Path:
@@ -141,35 +165,164 @@ def get_lines(day: int | None = None) -> list[str]:
     return get_str(day).strip().split("\n")
 
 
-def get_integers(day: int | None = None) -> list[int]:
-    """Get one integer per line for a specified day.
+# ==============================================================================
+# Getting complex queries
 
-    If no day is specified it will try to guess from your file name by grabbing
-    all of the integers.
 
-    Args:
-        day (int | None, optional): The day number.
+class Parse:
+    """Do complex parses of multiple different blocks if necessary.
 
-    Returns:
-        list[int]: One integer per line.
+    For example
+
+        foo, bar = aoc.Parse().comma_integers().regex(r"(\d+) => (.+)", (int, str))
+
+    would parse a file that looks like
+
+        1,2,3,4,5,6
+
+        1 => a
+        2 => b
+        3 => c
+
+    and write a list of integers into foo, and a list of tuples, here
+    [(1, "a"), (2, "b"), ...] into bar. Read the documentation for each function
+    below. A single item would not automatically be unwrapped from the list so
+    it can be gotten with
+
+        foo = aoc.Parse().comma_integers().get()
+
+    Parse can be supplied with an optional day in the constructor.
+
+    Attributes:
+        buffer (str): The buffer of the remaining input.
+        day (int): The observed day.
+        sections (list): The sections that have already been parsed.
     """
-    day = day or guess_day_from_filename()
-    return [int(line) for line in get_lines(day)]
+
+    day: int
+    sections: list[any]
+    buffer: str
+
+    def __init__(self, day: int | None = None):
+        self.day = day or guess_day_from_filename()
+        self.sections = []
+        self.buffer = get_lines(self.day)
+
+    def __iter__(self) -> Iterator[any]:
+        return iter(self.sections)
+
+    def __getitem__(self, key: int) -> any:
+        return self.sections[key]
+
+    def get(self) -> any:
+        """Get the single first item that has already been parsed."""
+        assert len(self.sections) == 1
+        return self.sections[0]
+
+    def _remove_trailing_next(self) -> None:
+        """Remove the next line if it is empty."""
+        if self.buffer and (self.buffer[0] == ""):
+            self.buffer.pop(0)
+
+    def line(self) -> Parse:
+        """Gets a single line."""
+        self.sections.append(self.buffer.pop(0))
+        self._remove_trailing_next()
+        return self
+
+    def lines(self) -> Parse:
+        """Gets a list of lines until one is empty."""
+        current_section: list[str] = []
+        while self.buffer and (line := self.buffer.pop(0)):
+            current_section.append(line)
+        self.sections.append(current_section)
+        return self
+
+    def regex_lines(self, query: str, data_types: list[Callable]) -> Parse:
+        """Match a list of lines until one is empty to regex and convert them
+        to given data types.
+
+        For example
+
+            foo = aoc.Parse().regex(r"(\d+) => (.+)", (int, str)).get()
+
+        would parse a file that looks like
+
+            1 => a
+            2 => b
+            3 => c
+
+        And write it into foo as a list of tuples looking like [(1, "a"),
+        (2, "b"), (3, "c")].
+
+        Args:
+            query (str): The regex query.
+            data_types (list[Callable]): The datatype conversion.
+        """
+        self.lines()
+        pattern = re.compile(query)
+        self.sections[-1] = [
+            [
+                dtype(match)
+                for match, dtype in zip(pattern.match(line).groups(), data_types)
+            ]
+            for line in self.sections[-1]
+        ]
+        return self
+
+    def regex_lines_single(self, query: str, data_type: Callable) -> Parse:
+        """Like regex_lines but does not return a tuple but a single element."""
+        self.regex_lines(query, [data_type])
+        self.sections[-1] = [line[0] for line in self.sections[-1]]
+        return self
+
+    def integers(self) -> Parse:
+        """Reads the lines as integers until there is an empty line."""
+        self.lines()
+        self.sections[-1] = [int(line) for line in self.sections[-1]]
+        return self
+
+    def comma_integers(self, separator=",") -> Parse:
+        """Reads a single line as comma separated integers.
+
+        Args:
+            separator (str, optional): The separator, by default ",".
+        """
+        self.sections.append([int(x) for x in self.buffer.pop(0).split(separator)])
+        self._remove_trailing_next()
+        return self
+
+    def dense_int_matrix(self) -> Parse:
+        """Read a dense integer matrix with one integer per character into a 2d
+        array. For example
+
+            1234
+            5678
+            9012
+
+        yields [[1, 2, 3, 4], [5, 6, 7, 8], [9, 0, 1, 2]].
+        """
+        self.lines()
+        self.sections[-1] = [[int(char) for char in line] for line in self.sections[-1]]
+        return self
+
+    def remaining_lines(self) -> Parse:
+        """Put the remaining lines into the next variable for manual parsing."""
+        self.sections.append(self.buffer)
+        self.buffer = ""
+        return self
 
 
-def get_dense_int_matrix(day: int | None = None) -> list[list[int]]:
-    """Gets the dense integer matrix.
+# ==============================================================================
+# Simple aliases
 
-    Each line is a row in the matrix and each character its own item.
+get_integers = lambda *args: Parse(*args).integers().get()
+get_comma_integers = lambda *args: Parse(*args).comma_integers().get()
+get_dense_int_matrix = lambda *args: Parse(*args).dense_int_matrix().get()
 
-    Args:
-        day (int | None, optional): The day number.
 
-    Returns:
-        list[int]: A 2d matrix of integers.
-    """
-    day = day or guess_day_from_filename()
-    return [[int(character) for character in line] for line in get_lines(day)]
+# ==============================================================================
+# Timing code runtime
 
 
 class Timer:

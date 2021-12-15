@@ -18,10 +18,11 @@ def extrema_diff(list_of_frequencies: list[int]) -> int:
 
 
 def main(timer: aoc.Timer) -> None:
-    raw_data = aoc.get_str().strip()
-    polymer_template, reactions = raw_data.split("\n\n")
-    instructions = {l[:2]: [l[0] + l[-1], l[-1] + l[1]] for l in reactions.split("\n")}
-    letters = sorted(list(set(letter for letter in raw_data if letter.isalpha())))
+    polymer_template, reactions = aoc.Parse().line().lines()
+    instructions = {l[:2]: [l[0] + l[-1], l[-1] + l[1]] for l in reactions}
+    letters = sorted(
+        list(set(letter for letter in "".join(aoc.get_str()) if letter.isalpha()))
+    )
 
     @cache
     def expand_pair_counts(sequence: str, depth: int) -> list[int]:

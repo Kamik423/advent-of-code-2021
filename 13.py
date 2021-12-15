@@ -7,19 +7,19 @@ from PIL import Image
 
 
 def main(timer: aoc.Timer) -> None:
-    data = aoc.get_str().strip()
+    points, instructions = (
+        aoc.Parse()
+        .regex_lines(r"(\d+),(\d+)", (int, int))
+        .regex_lines(r"fold along (.)=(\d+)", (str, int))
+    )
 
-    point_data, instructions = [lines.split("\n") for lines in data.split("\n\n")]
-    point_data = [[int(n) for n in line.split(",")] for line in point_data]
-
-    max_x, max_y = [max(point[column] for point in point_data) for column in [0, 1]]
+    max_x, max_y = [max(point[column] for point in points) for column in [0, 1]]
     paper = [[0 for x in range(max_x + 1)] for y in range(max_y + 1)]
 
-    for x, y in point_data:
+    for x, y in points:
         paper[y][x] = True
 
-    for instruction in instructions:
-        axis, distance = instruction.split(" ")[-1].split("=")
+    for axis, distance in instructions:
         distance = int(distance)
         alt = lambda x: distance + (distance - x)  # the point getting mirrored onto x
         if axis == "x":

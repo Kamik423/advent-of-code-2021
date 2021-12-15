@@ -6,9 +6,7 @@ import aoc
 
 
 def main() -> None:
-    lines = aoc.get_lines()
-
-    matrix = [[int(character) for character in line] for line in lines]
+    matrix = aoc.get_dense_int_matrix()
     width = len(matrix[0])
     height = len(matrix)
 

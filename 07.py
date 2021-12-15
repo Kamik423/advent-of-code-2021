@@ -35,7 +35,7 @@ def gradient_descent(start: int, costs: Callable[[int], int]) -> int:
 
 
 def main() -> None:
-    numbers = [int(number) for number in aoc.get_lines()[0].split(",")]
+    numbers = aoc.get_comma_integers()
     min_crab, max_crab = min(numbers), max(numbers)
 
     # smart solution

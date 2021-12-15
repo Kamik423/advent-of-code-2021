@@ -18,10 +18,7 @@ def showmatrix(matrix: list[list[int]]) -> None:
 
 
 def main() -> None:
-    lines = aoc.get_lines()
-    # lines = ["2199943210", "3987894921", "9856789892", "8767896789", "9899965678"]
-
-    matrix = [[int(character) for character in line] for line in lines]
+    matrix = aoc.get_dense_int_matrix()
 
     low_points = [
         [

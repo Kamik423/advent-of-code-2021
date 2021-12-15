@@ -6,7 +6,7 @@ import aoc
 
 
 def main() -> None:
-    numbers = [int(number) for number in aoc.get_lines()[0].split(",")]
+    numbers = aoc.get_comma_integers()
 
     # numbers = [3, 4, 3, 1, 2]
 

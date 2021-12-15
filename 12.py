@@ -6,14 +6,13 @@ import aoc
 
 
 def main(timer: aoc.Timer) -> None:
-    lines = aoc.get_lines()
+    cave_relations = aoc.Parse().regex_lines(r"(.+)-(.+)", (str, str)).get()
 
     cave_map: dict[str, list[str]] = {}
     big_caves: list[str] = []
     small_caves: list[str] = []
 
-    for line in lines:
-        cave1, cave2 = line.split("-")
+    for cave1, cave2 in cave_relations:
         for cave_a, cave_b in [[cave1, cave2], [cave2, cave1]]:
             if cave_a in cave_map:
                 cave_map[cave_a].append(cave_b)

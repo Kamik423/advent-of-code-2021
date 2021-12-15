@@ -4,8 +4,7 @@ import aoc
 
 
 def main() -> None:
-    lines = aoc.get_lines()
-    commands = [[line.split(" ")[0], int(line.split(" ")[1])] for line in lines]
+    commands = aoc.Parse().regex_lines(r"(.+) (\d+)", (str, int)).get()
     x = 0
     y = 0
     for command, distance in commands:
