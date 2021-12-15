@@ -42,12 +42,10 @@ def astar(cave_map: list[list[int]]) -> int:
         smallest_distance[y][x] = distance
         for x2, y2 in [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]]:
             if 0 <= x2 < width and 0 <= y2 < height:
+                new_distance = distance + cave_map[y2][x2]
+                heuristic = min(width - x2 + height - y2, abs(x2 - y2))
                 heapq.heappush(
-                    nodes_to_visit,
-                    (
-                        distance + cave_map[y2][x2] + width - x2 + height - y2,
-                        (x2, y2, distance + cave_map[y2][x2]),
-                    ),
+                    nodes_to_visit, (new_distance + heuristic, (x2, y2, new_distance))
                 )
 
 
