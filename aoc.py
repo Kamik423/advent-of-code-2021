@@ -44,7 +44,6 @@ import sys
 import time
 from itertools import pairwise
 from pathlib import Path
-from typing import List
 
 import requests
 
@@ -126,7 +125,7 @@ def get_str(day: int | None = None) -> str:
     return cache_file_for_day(day).read_text()
 
 
-def get_lines(day: int | None = None) -> List[str]:
+def get_lines(day: int | None = None) -> list[str]:
     """Get one string per line for a specified day.
 
     If no day is specified it will try to guess from your file name by grabbing
@@ -136,13 +135,13 @@ def get_lines(day: int | None = None) -> List[str]:
         day (int | None, optional): The day number.
 
     Returns:
-        List[str]: The lines.
+        list[str]: The lines.
     """
     day = day or guess_day_from_filename()
     return get_str(day).strip().split("\n")
 
 
-def get_integers(day: int | None = None) -> List[int]:
+def get_integers(day: int | None = None) -> list[int]:
     """Get one integer per line for a specified day.
 
     If no day is specified it will try to guess from your file name by grabbing
@@ -152,10 +151,25 @@ def get_integers(day: int | None = None) -> List[int]:
         day (int | None, optional): The day number.
 
     Returns:
-        List[int]: One integer per line.
+        list[int]: One integer per line.
     """
     day = day or guess_day_from_filename()
     return [int(line) for line in get_lines(day)]
+
+
+def get_dense_int_matrix(day: int | None = None) -> list[list[int]]:
+    """Gets the dense integer matrix.
+
+    Each line is a row in the matrix and each character its own item.
+
+    Args:
+        day (int | None, optional): The day number.
+
+    Returns:
+        list[int]: A 2d matrix of integers.
+    """
+    day = day or guess_day_from_filename()
+    return [[int(character) for character in line] for line in get_lines(day)]
 
 
 class Timer:
