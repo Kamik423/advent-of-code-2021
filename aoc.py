@@ -322,6 +322,17 @@ get_dense_int_matrix = lambda *args: Parse(*args).dense_int_matrix().get()
 
 
 # ==============================================================================
+# Checks for --test command line argument
+
+
+def is_test() -> bool:
+    if "test" in sys.argv:
+        sys.argv.remove("test")
+        return True
+    return False
+
+
+# ==============================================================================
 # Timing code runtime
 
 
@@ -361,15 +372,17 @@ class Timer:
     sections: list[str]
     remaining_labels: list[str]
     finished: bool = False
+    silent: bool = False
 
     day: str = ""
 
-    def __init__(self, day: any | None = None):
+    def __init__(self, day: any | None = None, silent: bool = False):
         self.day = str(day) if day is not None else str(guess_day_from_filename())
         self.remaining_labels = ["Part 1", "Part 2", "Postprocessing"]
         self.times = []
         self.sections = []
         self.finished = False
+        self.silent = silent
 
     def next_label(self) -> str:
         """Get the next automatically computed label
@@ -406,6 +419,9 @@ class Timer:
         if not self.finished:
             self.times.append(time.time())
             self.sections.append(self.next_label())
+
+        if self.silent:
+            return
 
         self.times = [1000 * t for t in self.times]
 
