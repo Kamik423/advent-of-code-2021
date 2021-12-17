@@ -5,7 +5,9 @@ from itertools import product
 from math import ceil, sqrt
 
 import aoc
+import numpy as np
 from joblib import Parallel, delayed
+from PIL import Image
 
 
 def main(timer: aoc.Timer) -> None:
@@ -57,6 +59,12 @@ def main(timer: aoc.Timer) -> None:
         return State(vx, vy).hits()
 
     print(
+        f"{1 + vx_ub - vx_lb} x {1 + vy_ub - vy_lb}"
+        f" = {(1 + vx_ub - vx_lb)*(1 + vy_ub - vy_lb)} states"
+    )
+    print("Range>", vx_lb, vx_ub, vy_lb, vy_ub)
+
+    print(
         sum(
             Parallel(n_jobs=2)(
                 delayed(test)(vx, vy)
@@ -64,6 +72,20 @@ def main(timer: aoc.Timer) -> None:
             )
         )
     )
+
+    # # Image plot
+    # Image.fromarray(
+    #     np.array(
+    #         [
+    #             [
+    #                 np.array([255, 255, 255], dtype=np.uint8) * test(vx, vy)
+    #                 + np.array([255, 0, 0], dtype=np.uint8) * (vx == 0 or vy == 0)
+    #                 for vx in range(vx_ub + 1)
+    #             ]
+    #             for vy in reversed(range(vy_lb, vy_ub + 1))
+    #         ]
+    #     )
+    # ).save("17-results.png")
 
 
 if __name__ == "__main__":
