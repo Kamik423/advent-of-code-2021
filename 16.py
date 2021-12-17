@@ -53,22 +53,25 @@ def main(timer: aoc.Timer, test_input: str | None = None) -> None:
                 target_length = remaining_length - length
                 while remaining_length > target_length:
                     packets.append(compute_packet())
-            operator: Callable[[int, int], int]
-            match type_id:
-                case 0:
-                    operator = lambda a, b: a + b
-                case 1:
-                    operator = lambda a, b: a * b
-                case 2:
-                    operator = lambda a, b: min(a, b)
-                case 3:
-                    operator = lambda a, b: max(a, b)
-                case 5:
-                    operator = lambda a, b: int(a > b)
-                case 6:
-                    operator = lambda a, b: int(a < b)
-                case 7:
-                    operator = lambda a, b: int(a == b)
+
+            def operator(a: int, b: int) -> int:
+                match type_id:
+                    case 0:
+                        return a + b
+                    case 1:
+                        return a * b
+                    case 2:
+                        return min(a, b)
+                    case 3:
+                        return max(a, b)
+                    case 5:
+                        return int(a > b)
+                    case 6:
+                        return int(a < b)
+                    case 7:
+                        return int(a == b)
+                raise ValueError(f"Unknown type_id {type_id}")
+
             return reduce(operator, packets)
 
     return_value = compute_packet()
