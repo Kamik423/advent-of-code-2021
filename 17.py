@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
-import itertools
+from dataclasses import dataclass
+from itertools import product
+from math import ceil, sqrt
 
 import aoc
-import numpy as np
-from tqdm import tqdm
+from joblib import Parallel, delayed
 
 
 def main(timer: aoc.Timer) -> None:
@@ -20,48 +21,46 @@ def main(timer: aoc.Timer) -> None:
     timer.mark()
 
     # lower and upper bounds
-    vx_lb = int(np.ceil(0.5 * (np.sqrt(8 * xmin) - 1)))
+    vx_lb = int(ceil(0.5 * (sqrt(8 * xmin) - 1)))
     vx_ub = xmax
     vy_lb = ymin
     vy_ub = start_velocity
-    time_ub = 2 * start_velocity + 1
+    time_ub = 2 * start_velocity + 2
 
-    simple_state = lambda vx, vy: [0, 0, vx, vy, 0, 1]
+    @dataclass
+    class State:
+        x: int
+        y: int
+        vx: int
+        vy: int
+        hit: bool
 
-    # state = [x, y, vx, vy, ever_hit, 1]^T
-    states = np.transpose(
-        np.array(
-            [
-                simple_state(vx, vy)
-                for vx, vy in itertools.product(
-                    range(vx_lb, vx_ub + 1),
-                    range(vy_lb, vy_ub + 1),
-                )
-            ]
+        def __init__(self, vx: int, vy: int):
+            self.x, self.y, self.hit = 0, 0, False
+            self.vx, self.vy = vx, vy
+
+        def increment(self) -> bool:
+            self.x += self.vx
+            self.y += self.vy
+            self.vx = max(self.vx - 1, 0)
+            self.vy -= 1
+            self.hit = self.hit or xmin <= self.x <= xmax and ymin <= self.y <= ymax
+            return self.hit
+
+        def hits_within(self, time: int) -> bool:
+            for _ in range(time):
+                if self.increment():
+                    return True
+            return False
+
+    print(
+        sum(
+            Parallel(n_jobs=4)(
+                delayed(State(vx, vy).hits_within)(time_ub)
+                for vx, vy in product(range(vx_lb, vx_ub + 1), range(vy_lb, vy_ub + 1))
+            )
         )
     )
-
-    state_count = len(states[0])
-    print(f"Checking {state_count} states [{vx_lb}-{vx_ub}] [{vy_lb}-{vy_ub}]")
-    state_transition = np.array(
-        [
-            [1, 0, 1, 0, 0, 0],
-            [0, 1, 0, 1, 0, 0],
-            [0, 0, 1, 0, 0, -1],
-            [0, 0, 0, 1, 0, -1],
-            [0, 0, 0, 0, 1, 0],
-            [0, 0, 0, 0, 0, 1],
-        ]
-    )
-    for _ in tqdm(range(time_ub + 1)):
-        states = state_transition @ states
-        for index in range(state_count):
-            x, y, vx, vy, hit, _ = states[:, index]
-            vx = max(0, vx)
-            hit = hit or xmin <= x <= xmax and ymin <= y <= ymax
-            states[:, index] = (x, y, vx, vy, hit, 1)
-
-    print(sum(states[4]))
 
 
 if __name__ == "__main__":
