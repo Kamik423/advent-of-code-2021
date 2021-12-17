@@ -51,12 +51,17 @@ def main(timer: aoc.Timer) -> None:
             for _ in range(time):
                 if self.increment():
                     return True
+                if self.x > xmax or self.y < ymin:
+                    return False
             return False
+
+    def test(vx: int, vy: int) -> bool:
+        return State(vx, vy).hits_within(time_ub)
 
     print(
         sum(
-            Parallel(n_jobs=4)(
-                delayed(State(vx, vy).hits_within)(time_ub)
+            Parallel(n_jobs=2)(
+                delayed(test)(vx, vy)
                 for vx, vy in product(range(vx_lb, vx_ub + 1), range(vy_lb, vy_ub + 1))
             )
         )
