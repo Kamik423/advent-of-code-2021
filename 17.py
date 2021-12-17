@@ -25,7 +25,6 @@ def main(timer: aoc.Timer) -> None:
     vx_ub = xmax
     vy_lb = ymin
     vy_ub = start_velocity
-    time_ub = 2 * start_velocity + 2
 
     @dataclass
     class State:
@@ -47,16 +46,15 @@ def main(timer: aoc.Timer) -> None:
             self.hit = self.hit or xmin <= self.x <= xmax and ymin <= self.y <= ymax
             return self.hit
 
-        def hits_within(self, time: int) -> bool:
-            for _ in range(time):
+        def hits(self) -> bool:
+            while 1:
                 if self.increment():
                     return True
                 if self.x > xmax or self.y < ymin:
                     return False
-            return False
 
     def test(vx: int, vy: int) -> bool:
-        return State(vx, vy).hits_within(time_ub)
+        return State(vx, vy).hits()
 
     print(
         sum(
