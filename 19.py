@@ -1,75 +1,94 @@
 #!/usr/bin/env python3
 
-
 import random
+from functools import reduce
+from typing import Callable
 
 import aoc
-import numpy as np
 
 ROTATIONS = [
-    np.array([[-1, 0, 0], [0, -1, 0], [0, 0, 1]]),
-    np.array([[-1, 0, 0], [0, 0, -1], [0, -1, 0]]),
-    np.array([[-1, 0, 0], [0, 0, 1], [0, 1, 0]]),
-    np.array([[-1, 0, 0], [0, 1, 0], [0, 0, -1]]),
-    np.array([[0, -1, 0], [-1, 0, 0], [0, 0, -1]]),
-    np.array([[0, -1, 0], [0, 0, -1], [1, 0, 0]]),
-    np.array([[0, -1, 0], [0, 0, 1], [-1, 0, 0]]),
-    np.array([[0, -1, 0], [1, 0, 0], [0, 0, 1]]),
-    np.array([[0, 0, -1], [-1, 0, 0], [0, 1, 0]]),
-    np.array([[0, 0, -1], [0, -1, 0], [-1, 0, 0]]),
-    np.array([[0, 0, -1], [0, 1, 0], [1, 0, 0]]),
-    np.array([[0, 0, -1], [1, 0, 0], [0, -1, 0]]),
-    np.array([[0, 0, 1], [-1, 0, 0], [0, -1, 0]]),
-    np.array([[0, 0, 1], [0, -1, 0], [1, 0, 0]]),
-    np.array([[0, 0, 1], [0, 1, 0], [-1, 0, 0]]),
-    np.array([[0, 0, 1], [1, 0, 0], [0, 1, 0]]),
-    np.array([[0, 1, 0], [-1, 0, 0], [0, 0, 1]]),
-    np.array([[0, 1, 0], [0, 0, -1], [-1, 0, 0]]),
-    np.array([[0, 1, 0], [0, 0, 1], [1, 0, 0]]),
-    np.array([[0, 1, 0], [1, 0, 0], [0, 0, -1]]),
-    np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]]),
-    np.array([[1, 0, 0], [0, 0, -1], [0, 1, 0]]),
-    np.array([[1, 0, 0], [0, 0, 1], [0, -1, 0]]),
-    np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]]),
+    lambda a, b, c: (-a, -b, c),
+    lambda a, b, c: (-a, -c, -b),
+    lambda a, b, c: (-a, c, b),
+    lambda a, b, c: (-a, b, -c),
+    lambda a, b, c: (-b, -a, -c),
+    lambda a, b, c: (-b, -c, a),
+    lambda a, b, c: (-b, c, -a),
+    lambda a, b, c: (-b, a, c),
+    lambda a, b, c: (-c, -a, b),
+    lambda a, b, c: (-c, -b, -a),
+    lambda a, b, c: (-c, b, a),
+    lambda a, b, c: (-c, a, -b),
+    lambda a, b, c: (c, -a, -b),
+    lambda a, b, c: (c, -b, a),
+    lambda a, b, c: (c, b, -a),
+    lambda a, b, c: (c, a, b),
+    lambda a, b, c: (b, -a, c),
+    lambda a, b, c: (b, -c, -a),
+    lambda a, b, c: (b, c, a),
+    lambda a, b, c: (b, a, -c),
+    lambda a, b, c: (a, -b, -c),
+    lambda a, b, c: (a, -c, b),
+    lambda a, b, c: (a, c, -b),
+    lambda a, b, c: (a, b, c),
 ]
+POINT = tuple[int, int, int]
 
 OVERLAP_THRESHOLD = 12
+
+
+def elementwise_add(left: POINT, right: POINT) -> POINT:
+    return tuple([a + b for a, b in zip(left, right)])
+
+
+def elementwise_sub(left: POINT, right: POINT) -> POINT:
+    return tuple([a - b for a, b in zip(left, right)])
+
+
+def tupel_division(left: POINT, right: POINT) -> POINT:
+    return tuple([a / right for a in left])
+
+
+def norm(point: POINT) -> int:
+    return sum(abs(x) for x in point)
+
+
+def dist(left: POINT, right: POINT) -> int:
+    return sum(abs(a - b) for a, b in zip(left, right))
 
 
 def main(timer: aoc.Timer) -> None:
     scannerdata = aoc.get_str()
     scanners = [
-        np.array(
-            [
-                [int(n) for n in line.split(",")]
-                for line in scanner.strip().split("\n")[1:]
-            ]
-        )
+        [[int(n) for n in line.split(",")] for line in scanner.strip().split("\n")[1:]]
         for scanner in scannerdata.split("\n\n")
     ]
 
-    found_scanners: list[np.array] = [np.array((0, 0, 0))]
-    beacons: set[tuple[int, int, int]] = set(tuple(x) for x in scanners[0])
+    found_scanners: list[POINT] = [(0, 0, 0)]
+    beacons: set[POINT] = set(tuple(x) for x in scanners[0])
     unfound_scanners = scanners[1:]
 
-    def match_scanner_attitude(scanner: np.array, rotation: np.array) -> bool:
+    def match_scanner_attitude(
+        scanner: POINT, rotation: Callable[[int, int, int], POINT]
+    ) -> bool:
         nonlocal beacons
-        local_scanner = np.transpose(rotation @ np.transpose(scanner))
-        local_root_beacon = random.choice(local_scanner)
+        local_beacons = [rotation(*b) for b in scanner]
+        local_root_beacon = random.choice(local_beacons)
         for beacon in beacons:
-            offset = np.array(beacon) - local_root_beacon
-            global_beacon_candidates = local_scanner + offset
+            offset = elementwise_sub(beacon, local_root_beacon)
+            global_beacon_candidates = [
+                elementwise_add(b, offset) for b in local_beacons
+            ]
             overlaps = 0
             for global_beacon in global_beacon_candidates:
-                global_beacon = tuple(global_beacon)
                 overlaps += global_beacon in beacons
                 if overlaps >= OVERLAP_THRESHOLD:  # match
-                    beacons.update((tuple(bgc) for bgc in global_beacon_candidates))
+                    beacons.update(global_beacon_candidates)
                     found_scanners.append(offset)
                     return True
         return False
 
-    def match_scanner(scanner: np.array) -> bool:
+    def match_scanner(scanner: POINT) -> bool:
         return any(match_scanner_attitude(scanner, rotation) for rotation in ROTATIONS)
 
     while unfound_scanners:
@@ -84,11 +103,9 @@ def main(timer: aoc.Timer) -> None:
 
     # furthest element from the center of mass must be part of the pair
     # (not proofen, but works for example and me)
-    com = sum(found_scanners) / len(found_scanners)
-    max_scanner = max(found_scanners, key=lambda a: np.linalg.norm(a - com, 1))
-    print(
-        max(int(np.linalg.norm(scanner - max_scanner, 1)) for scanner in found_scanners)
-    )
+    com = tupel_division(reduce(elementwise_add, found_scanners), len(found_scanners))
+    max_scanner = max(found_scanners, key=lambda a: dist(a, com))
+    print(max(dist(scanner, max_scanner) for scanner in found_scanners))
 
 
 if __name__ == "__main__":
