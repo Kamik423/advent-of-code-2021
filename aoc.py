@@ -415,12 +415,12 @@ class Timer:
         self.mark(name)
         self.finished = True
 
-    def __exit__(self, type, value, traceback) -> None:
+    def __exit__(self, exception_type, exception_value, traceback) -> None:
         if not self.finished:
             self.times.append(time.time())
             self.sections.append(self.next_label())
 
-        if self.silent:
+        if self.silent or exception_type is not None:
             return
 
         self.times = [1000 * t for t in self.times]
