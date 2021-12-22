@@ -203,10 +203,10 @@ class Parse:
     sections: list[any]
     buffer: str
 
-    def __init__(self, day: int | None = None):
+    def __init__(self, day: int | None = None, alt: str | None = None):
         self.day = day or guess_day_from_filename()
         self.sections = []
-        self.buffer = get_lines(self.day)
+        self.buffer = get_lines(self.day) if alt is None else alt
 
     def __iter__(self) -> Iterator[any]:
         return iter(self.sections)
