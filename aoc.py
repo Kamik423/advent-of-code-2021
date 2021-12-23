@@ -206,7 +206,7 @@ class Parse:
     def __init__(self, day: int | None = None, alt: str | None = None):
         self.day = day or guess_day_from_filename()
         self.sections = []
-        self.buffer = get_lines(self.day) if alt is None else alt
+        self.buffer = get_lines(self.day) if alt is None else alt.split("\n")
 
     def __iter__(self) -> Iterator[any]:
         return iter(self.sections)
